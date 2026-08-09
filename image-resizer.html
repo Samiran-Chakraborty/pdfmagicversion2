@@ -81,7 +81,7 @@
     <main class="max-w-4xl mx-auto px-4 py-12 pt-32 flex-grow w-full">
         <!-- Back to Tools Button -->
         <div class="mb-6 text-left">
-            <a href="tools.html" class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-pink-600 hover:border-pink-200 font-semibold text-sm shadow-sm transition-all hover:-translate-x-1 group">
+            <a href="tools.html?category=image" class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-pink-600 hover:border-pink-200 font-semibold text-sm shadow-sm transition-all hover:-translate-x-1 group">
                 <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
@@ -271,7 +271,6 @@
                 img.src = URL.createObjectURL(currentFile);
                 await img.decode();
 
-                let quality = 0.92;
                 let curWidth = targetWidth;
                 let curHeight = targetHeight;
 
@@ -280,24 +279,31 @@
                 canvas.height = curHeight;
                 const ctx = canvas.getContext('2d');
 
-                const mimeType = currentFile.type === 'image/png' ? 'image/png' : 'image/jpeg';
-                if (mimeType === 'image/jpeg') {
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillRect(0, 0, curWidth, curHeight);
+                let mimeType = currentFile.type || 'image/jpeg';
+                if (targetBytes && mimeType === 'image/png') {
+                    mimeType = 'image/jpeg'; // JPEG supports quality compression
                 }
+
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, curWidth, curHeight);
                 ctx.drawImage(img, 0, 0, curWidth, curHeight);
 
+                let quality = 0.90;
                 let blob = await new Promise(res => canvas.toBlob(res, mimeType, quality));
 
                 if (targetBytes && blob.size > targetBytes) {
-                    for (let q = 0.85; q >= 0.2; q -= 0.15) {
+                    for (let q = 0.80; q >= 0.15; q -= 0.10) {
                         blob = await new Promise(res => canvas.toBlob(res, mimeType, q));
                         if (blob.size <= targetBytes) break;
                     }
                 }
 
                 compressedBlob = blob;
-                newSizeDisplay.textContent = `${(blob.size / 1024).toFixed(1)} KB`;
+                const origKb = (currentFile.size / 1024).toFixed(1);
+                const newKb = (blob.size / 1024).toFixed(1);
+                const reduction = Math.round((1 - blob.size / currentFile.size) * 100);
+
+                newSizeDisplay.textContent = `${newKb} KB (${reduction > 0 ? reduction + '% smaller' : 'resized'})`;
                 resultArea.classList.remove('hidden');
 
             } catch (err) {

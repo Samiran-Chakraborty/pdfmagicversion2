@@ -86,7 +86,7 @@
     <main class="max-w-4xl mx-auto px-4 py-12 pt-32 flex-grow w-full">
         <!-- Back to Tools Button -->
         <div class="mb-6 text-left">
-            <a href="tools.html" class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-200 font-semibold text-sm shadow-sm transition-all hover:-translate-x-1 group">
+            <a href="tools.html?category=pdf" class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-200 font-semibold text-sm shadow-sm transition-all hover:-translate-x-1 group">
                 <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
@@ -238,14 +238,15 @@
                 const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
                 const newPdfDoc = await PDFDocument.create();
 
-                const quality = parseFloat(qualitySlider.value);
+                let quality = parseFloat(qualitySlider.value);
                 const targetBytes = targetKb.value ? parseFloat(targetKb.value) * 1024 : null;
+                const renderScale = targetBytes && targetBytes < currentFile.size * 0.5 ? 0.8 : 1.0;
 
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                     const page = await pdf.getPage(pageNum);
                     const origViewport = page.getViewport({ scale: 1.0 });
 
-                    const renderViewport = page.getViewport({ scale: 1.5 });
+                    const renderViewport = page.getViewport({ scale: renderScale });
                     const canvas = document.createElement('canvas');
                     canvas.width = renderViewport.width;
                     canvas.height = renderViewport.height;
@@ -270,7 +271,11 @@
                 const pdfBytes = await newPdfDoc.save();
                 compressedBlob = new Blob([pdfBytes], { type: 'application/pdf' });
 
-                newSizeDisplay.textContent = `${(compressedBlob.size / 1024).toFixed(1)} KB`;
+                const origKb = (currentFile.size / 1024).toFixed(1);
+                const newKb = (compressedBlob.size / 1024).toFixed(1);
+                const reduction = Math.round((1 - compressedBlob.size / currentFile.size) * 100);
+
+                newSizeDisplay.textContent = `${newKb} KB (${reduction > 0 ? reduction + '% reduced' : 'optimized'})`;
                 resultArea.classList.remove('hidden');
 
             } catch (err) {

@@ -57,6 +57,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentCategory = 'all';
 
+    // 1. Restore persistent category selection from URL param or sessionStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramCat = urlParams.get('category');
+    const storedCat = sessionStorage.getItem('selectedCategory');
+    const initialCategory = paramCat || storedCat || 'all';
+
     function filterTools() {
         const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
@@ -76,15 +82,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function setCategory(cat) {
+        currentCategory = cat;
+        sessionStorage.setItem('selectedCategory', cat);
+        
+        // Update URL query string without reloading page
+        const newUrl = new URL(window.location.href);
+        if (cat === 'all') {
+            newUrl.searchParams.delete('category');
+        } else {
+            newUrl.searchParams.set('category', cat);
+        }
+        window.history.replaceState(null, '', newUrl.toString());
+
+        if (tabPills.length > 0) {
+            tabPills.forEach(p => {
+                if (p.getAttribute('data-category') === cat) {
+                    p.classList.add('active');
+                } else {
+                    p.classList.remove('active');
+                }
+            });
+        }
+        filterTools();
+    }
+
     if (tabPills.length > 0) {
         tabPills.forEach(pill => {
             pill.addEventListener('click', () => {
-                tabPills.forEach(p => p.classList.remove('active'));
-                pill.classList.add('active');
-                currentCategory = pill.getAttribute('data-category') || 'all';
-                filterTools();
+                const cat = pill.getAttribute('data-category') || 'all';
+                setCategory(cat);
             });
         });
+
+        // Initialize category on load
+        setCategory(initialCategory);
     }
 
     if (searchInput) {
@@ -99,29 +131,26 @@ window.downloadBlob = function(blob, fileName) {
     // Sanitize filename to remove any invalid characters
     const safeName = (fileName || 'download').replace(/[/\\?%*:|"<>]/g, '_');
 
-    const url = URL.createObjectURL(blob);
+    // Create a temporary link element
     const link = document.createElement('a');
-    link.style.display = 'none';
-    link.rel = 'noopener';
     
-    // Set download attribute BEFORE href to ensure Chrome/Edge respect the filename override
-    link.download = safeName;
-    link.setAttribute('download', safeName);
+    // Check for native blob URL support
+    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        // IE11 / Edge legacy
+        window.navigator.msSaveOrOpenBlob(blob, safeName);
+        return;
+    }
+
+    const url = URL.createObjectURL(blob);
     link.href = url;
+    link.download = safeName;
 
+    // Append to body, trigger click, and cleanup
     document.body.appendChild(link);
-
-    // Trigger click
     link.click();
-
+    
     setTimeout(() => {
-        if (link.parentNode) {
-            link.parentNode.removeChild(link);
-        }
+        document.body.removeChild(link);
         URL.revokeObjectURL(url);
-    }, 10000);
+    }, 200);
 };
-
-
-
-
