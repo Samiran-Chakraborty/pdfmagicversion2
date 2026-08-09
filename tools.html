@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Tools - PDF Magic</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234f46e5'/%3E%3Cpath stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M15 4V2m0 2v2m-2-2h2m2 0h-2M6.4 17.6l1-1 4-4 6 6-4 4-6-6 1-1Z' fill='none'/%3E%3C/svg%3E">
+
+    <!-- Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s ease-out',
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 3s infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+
+<body
+    class="antialiased text-slate-800 bg-slate-50 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 transition-all duration-300 backdrop-blur-md border-b border-white/20 bg-white/70">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0 flex items-center gap-3 cursor-pointer group"
+                    onclick="window.location.href='index.html'">
+                    <div
+                        class="bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <span
+                        class="font-bold text-2xl tracking-tight text-slate-900 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">PDF
+                        Magic</span>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html"
+                        class="text-lg font-medium text-slate-600 hover:text-indigo-600 transition-colors">Home</a>
+                    <a href="tools.html" class="text-lg font-bold text-indigo-600 transition-colors">Tools</a>
+                    <a href="about.html"
+                        class="text-lg font-medium text-slate-600 hover:text-indigo-600 transition-colors">About</a>
+                </div>
+
+                <div class="hidden md:block">
+                    <a href="tools.html"
+                        class="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 hover:-translate-y-0.5">
+                        Get Started
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="flex md:hidden items-center">
+                    <button id="mobile-menu-btn" type="button" aria-label="Toggle navigation menu"
+                        class="p-2.5 rounded-xl text-slate-700 hover:text-indigo-600 hover:bg-slate-100 focus:outline-none transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200/60 bg-white/95 backdrop-blur-lg px-4 pt-3 pb-6 space-y-3 shadow-xl">
+            <a href="index.html" class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-50 hover:text-indigo-600">Home</a>
+            <a href="tools.html" class="block px-4 py-2.5 rounded-xl text-base font-bold bg-indigo-50 text-indigo-600">Tools</a>
+            <a href="about.html" class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-50 hover:text-indigo-600">About</a>
+            <div class="pt-2">
+                <a href="tools.html" class="block w-full text-center bg-indigo-600 text-white px-5 py-3 rounded-xl font-bold text-sm shadow-md hover:bg-indigo-700">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-32 pb-20 max-w-7xl mx-auto px-6 w-full relative overflow-hidden">
+        <!-- Animated Background -->
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+            <div
+                class="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-purple-300/30 rounded-full blur-[100px] animate-float">
+            </div>
+            <div
+                class="absolute top-[20%] right-[-10%] w-[400px] h-[600px] bg-indigo-300/30 rounded-full blur-[100px] animate-float-delayed">
+            </div>
+            <div
+                class="absolute bottom-[-10%] left-[30%] w-[600px] h-[400px] bg-pink-200/40 rounded-full blur-[100px] animate-float">
+            </div>
+        </div>
+
+        <div class="text-center mb-10 animate-fade-in-up">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">Our Tool Suite</h1>
+            <p class="text-xl text-slate-600 max-w-2xl mx-auto mb-8">Convert, edit, and compress your files privately in your browser.</p>
+
+            <!-- Search & Filters Container -->
+            <div class="max-w-3xl mx-auto space-y-6">
+                <!-- Search Input -->
+                <div class="relative">
+                    <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" id="tool-search-input" placeholder="Search any tool (e.g., Image Resizer, Word Compressor, PDF to Excel...)"
+                        class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-slate-200 shadow-lg shadow-indigo-500/5 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-slate-800 font-medium outline-none transition-all">
+                </div>
+
+                <!-- Category Filter Pills -->
+                <div id="pill-tray" class="flex items-center justify-center gap-2" style="flex-wrap:nowrap;">
+                    <button class="tab-pill active" data-category="all">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zM9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+                            All
+                        </span>
+                    </button>
+                    <button class="tab-pill" data-category="pdf">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6M9 17h4"/></svg>
+                            PDF
+                        </span>
+                    </button>
+                    <button class="tab-pill" data-category="word">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                            Word
+                        </span>
+                    </button>
+                    <button class="tab-pill" data-category="excel">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Excel
+                        </span>
+                    </button>
+                    <button class="tab-pill" data-category="powerpoint">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+                            PPT
+                        </span>
+                    </button>
+                    <button class="tab-pill" data-category="image">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Image
+                        </span>
+                    </button>
+                </div>
+                </div><!-- /overflow wrapper -->
+            </div>
+        </div>
+
+        <script>
+        (function(){
+            // Color map per category
+            var colorMap = {
+                'all':         { bg: 'linear-gradient(135deg,#6366f1 0%,#4f46e5 60%,#4338ca 100%)', shadow: '0 6px 22px -4px rgba(79,70,229,0.5), inset 0 1px 0 rgba(255,255,255,0.22)' },
+                'pdf':         { bg: 'linear-gradient(135deg,#818cf8 0%,#6366f1 60%,#4f46e5 100%)', shadow: '0 6px 22px -4px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.22)' },
+                'word':        { bg: 'linear-gradient(135deg,#60a5fa 0%,#3b82f6 60%,#2563eb 100%)', shadow: '0 6px 22px -4px rgba(59,130,246,0.55), inset 0 1px 0 rgba(255,255,255,0.22)' },
+                'excel':       { bg: 'linear-gradient(135deg,#34d399 0%,#10b981 60%,#059669 100%)', shadow: '0 6px 22px -4px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.22)' },
+                'powerpoint':  { bg: 'linear-gradient(135deg,#fb923c 0%,#f97316 60%,#ea580c 100%)', shadow: '0 6px 22px -4px rgba(249,115,22,0.55), inset 0 1px 0 rgba(255,255,255,0.22)' },
+                'image':       { bg: 'linear-gradient(135deg,#f472b6 0%,#ec4899 60%,#db2777 100%)', shadow: '0 6px 22px -4px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.22)' }
+            };
+
+            function applyActiveColor(btn) {
+                var cat = btn.getAttribute('data-category');
+                var c = colorMap[cat] || colorMap['all'];
+                btn.style.background = c.bg;
+                btn.style.boxShadow  = c.shadow;
+                btn.style.color      = '#fff';
+                btn.style.borderColor = 'transparent';
+            }
+
+            function clearActiveColor(btn) {
+                btn.style.background  = '';
+                btn.style.boxShadow   = '';
+                btn.style.color       = '';
+                btn.style.borderColor = '';
+            }
+
+            var pills = document.querySelectorAll('.tab-pill');
+            // Apply color to default active pill on load
+            pills.forEach(function(p){
+                if(p.classList.contains('active')) applyActiveColor(p);
+                p.addEventListener('click', function(){
+                    pills.forEach(function(pp){ pp.classList.remove('active'); clearActiveColor(pp); });
+                    p.classList.add('active');
+                    applyActiveColor(p);
+                });
+            });
+        })();
+        </script>
+
+        <!-- Tool Cards Grid -->
+        <div id="tools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            <!-- Word Compressor -->
+            <a href="word-compressor.html" data-category="word" data-title="Word Document Compressor" data-desc="Shrink Word docx document file size"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-blue-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-700 uppercase tracking-wider">Word</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">Word Compressor</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Shrink Word (.docx, .doc) file size without changing any content inside.</p>
+                    <div class="inline-flex items-center text-blue-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Excel Compressor -->
+            <a href="excel-compressor.html" data-category="excel" data-title="Excel Spreadsheet Compressor" data-desc="Shrink Excel xlsx spreadsheet file size"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-emerald-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-wider">Excel</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">Excel Compressor</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Reduce Excel (.xlsx, .xls) file size without changing any content inside.</p>
+                    <div class="inline-flex items-center text-emerald-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- PPT Compressor -->
+            <a href="ppt-compressor.html" data-category="powerpoint" data-title="PowerPoint Compressor" data-desc="Reduce PowerPoint pptx file size without changing content"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-orange-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-orange-100 text-orange-700 uppercase tracking-wider">PPT</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-orange-600 transition-colors">PPT Compressor</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Compress PowerPoint (.pptx) presentations without changing any content.</p>
+                    <div class="inline-flex items-center text-orange-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Image Resizer & Compressor -->
+            <a href="image-resizer.html" data-category="image" data-title="Image Resizer & Compressor" data-desc="Resize dimensions and compress image size"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-pink-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-pink-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-pink-100 text-pink-700 uppercase tracking-wider">Image</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-pink-600 transition-colors">Image Resizer</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Resize dimensions (Width/Height) & compress image file size.</p>
+                    <div class="inline-flex items-center text-pink-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- PDF Compressor -->
+            <a href="pdf-compressor.html" data-category="pdf" data-title="PDF File Compressor" data-desc="Compress PDF file size to target KB"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-indigo-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 uppercase tracking-wider">PDF</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">PDF Compressor</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Compress large PDF documents to your target file size.</p>
+                    <div class="inline-flex items-center text-indigo-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Excel to PDF -->
+            <a href="excel-to-pdf.html" data-category="excel powerpoint" data-title="Excel to PDF" data-desc="Transform spreadsheets to printable PDF"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-emerald-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-wider">Excel</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">Excel to PDF</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Turn Excel spreadsheets (.xlsx, .csv) into clean PDF documents.</p>
+                    <div class="inline-flex items-center text-emerald-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Excel to Word -->
+            <a href="excel-to-word.html" data-category="excel word" data-title="Excel to Word" data-desc="Convert spreadsheets to Word document tables"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-teal-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-teal-100 rounded-2xl flex items-center justify-center text-teal-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-teal-100 text-teal-700 uppercase tracking-wider">Excel</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-teal-600 transition-colors">Excel to Word</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Export spreadsheets into editable Word document tables.</p>
+                    <div class="inline-flex items-center text-teal-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Word to Excel -->
+            <a href="word-to-excel.html" data-category="word excel powerpoint" data-title="Word to Excel" data-desc="Extract Word tables to Excel spreadsheet"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-blue-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-700 uppercase tracking-wider">Word</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">Word to Excel</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Extract tables and structured data into Excel (.xlsx).</p>
+                    <div class="inline-flex items-center text-blue-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- PDF to Excel -->
+            <a href="pdf-to-excel.html" data-category="powerpoint excel" data-title="PDF to Excel" data-desc="Extract PDF numerical data and grids to Excel"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-indigo-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 uppercase tracking-wider">PDF</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">PDF to Excel</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Extract tables and numerical data grids to Excel.</p>
+                    <div class="inline-flex items-center text-indigo-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- PDF to Word -->
+            <a href="pdf-to-word.html" data-category="powerpoint word" data-title="PDF to Word" data-desc="Extract text from PDFs to Word"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-orange-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-orange-100 text-orange-700 uppercase tracking-wider">PDF</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-orange-600 transition-colors">PDF to Word</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Extract text from scanned or digital PDFs to Word.</p>
+                    <div class="inline-flex items-center text-orange-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Word to PDF -->
+            <a href="word-to-pdf.html" data-category="word powerpoint" data-title="Word to PDF" data-desc="Turn Word docs into professional PDFs"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-sky-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-sky-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-sky-100 rounded-2xl flex items-center justify-center text-sky-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-sky-100 text-sky-700 uppercase tracking-wider">Word</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-sky-600 transition-colors">Word to PDF</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Turn Word documents (.docx) into professional PDFs.</p>
+                    <div class="inline-flex items-center text-sky-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Image Converter -->
+            <a href="image-converter.html" data-category="image" data-title="Image Converter" data-desc="Convert PNG, JPG, and WebP instantly"
+                class="tool-card-item glass-card animate-fade-in-up group relative rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-pink-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-pink-100">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600 group-hover:scale-110 transition-transform shadow-sm">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-pink-100 text-pink-700 uppercase tracking-wider">Image</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-pink-600 transition-colors">Image Converter</h3>
+                    <p class="text-slate-500 mb-6 leading-relaxed font-medium">Convert PNG, JPG, and WebP image formats instantly.</p>
+                    <div class="inline-flex items-center text-pink-600 font-bold group-hover:translate-x-2 transition-transform">
+                        Launch <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-12 mt-auto">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-slate-500 font-medium">© 2026 PDF Magic. Designed for Privacy.</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js?v=2.0"></script>
+</body>
+
+</html>
