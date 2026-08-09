@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerPoint to Word - PDF Magic</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234f46e5'/%3E%3Cpath stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M15 4V2m0 2v2m-2-2h2m2 0h-2M6.4 17.6l1-1 4-4 6 6-4 4-6-6 1-1Z' fill='none'/%3E%3C/svg%3E">
+
+    <!-- Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- JSZip & Docx.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+        }
+    </script>
+</head>
+
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800 flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 transition-all duration-300 backdrop-blur-md border-b border-white/20 bg-white/70">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0 flex items-center gap-3 cursor-pointer group"
+                    onclick="window.location.href='index.html'">
+                    <div
+                        class="bg-gradient-to-br from-orange-500 to-amber-600 p-2 rounded-xl text-white shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform duration-300">
+                        <i data-lucide="wand-2" class="h-5 w-5"></i>
+                    </div>
+                    <span
+                        class="font-bold text-2xl tracking-tight text-slate-900 bg-clip-text text-transparent bg-gradient-to-r from-orange-600 to-amber-600">PDF
+                        Magic</span>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html"
+                        class="text-lg font-medium text-slate-600 hover:text-orange-600 transition-colors">Home</a>
+                    <a href="tools.html" class="text-lg font-bold text-orange-600 transition-colors">Tools</a>
+                    <a href="about.html"
+                        class="text-lg font-medium text-slate-600 hover:text-orange-600 transition-colors">About</a>
+                </div>
+
+                <div class="hidden md:block">
+                    <a href="tools.html"
+                        class="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 hover:-translate-y-0.5">
+                        Get Started
+                    </a>
+                </div>
+
+                <div class="flex md:hidden items-center">
+                    <button id="mobile-menu-btn" type="button" aria-label="Toggle navigation menu"
+                        class="p-2.5 rounded-xl text-slate-700 hover:text-orange-600 hover:bg-slate-100 focus:outline-none transition-colors">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200/60 bg-white/95 backdrop-blur-lg px-4 pt-3 pb-6 space-y-3 shadow-xl">
+            <a href="index.html" class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-50 hover:text-orange-600">Home</a>
+            <a href="tools.html" class="block px-4 py-2.5 rounded-xl text-base font-bold bg-orange-50 text-orange-600">Tools</a>
+            <a href="about.html" class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-50 hover:text-orange-600">About</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-12 pt-32 flex-grow w-full">
+        <div class="mb-6 text-left">
+            <a href="tools.html" class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-orange-600 hover:border-orange-200 font-semibold text-sm shadow-sm transition-all hover:-translate-x-1 group">
+                <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span>Back to Tools</span>
+            </a>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 md:p-12 text-center">
+
+            <div class="mb-8">
+                <div class="w-20 h-20 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-orange-600">
+                    <i data-lucide="file-text" class="w-10 h-10"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-900 mb-2">PowerPoint to Word (PPT to Word)</h1>
+                <p class="text-slate-500">Extract slide text and headings from PowerPoint (.pptx) into an editable Word document.</p>
+            </div>
+
+            <!-- Upload Zone -->
+            <div id="drop-zone" class="drop-zone rounded-2xl p-10 cursor-pointer mb-8 group hover:bg-orange-50/50 border-2 border-dashed border-slate-200 transition-all">
+                <input type="file" id="file-input" accept=".pptx, .ppt" class="hidden">
+                <div class="pointer-events-none">
+                    <svg class="h-12 w-12 text-slate-400 mx-auto mb-4 group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="text-lg font-medium text-slate-700 mb-1">Click to upload or drag and drop</p>
+                    <p class="text-sm text-slate-400">Supported format: .pptx</p>
+                </div>
+            </div>
+
+            <!-- Editor Section -->
+            <div id="editor-section" class="hidden text-left space-y-6">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <h4 id="file-name" class="font-bold text-slate-900"></h4>
+                        <p id="slide-count-text" class="text-xs font-semibold text-orange-600"></p>
+                    </div>
+                    <button id="remove-btn" class="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 font-semibold text-sm">Remove</button>
+                </div>
+
+                <button id="download-btn" class="w-full bg-orange-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-orange-700 shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-3">
+                    <i data-lucide="download" class="w-6 h-6"></i>
+                    <span>Download Word Document (.docx)</span>
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading" class="hidden py-12">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-600 mx-auto mb-4"></div>
+                <p class="text-slate-500 font-medium">Extracting presentation text...</p>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-slate-500 font-medium">© 2026 PDF Magic. Designed for Privacy.</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js?v=2.0"></script>
+    <script>
+        lucide.createIcons();
+        const { Document, Packer, Paragraph, HeadingLevel } = docx;
+
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const editorSection = document.getElementById('editor-section');
+        const fileNameDisplay = document.getElementById('file-name');
+        const slideCountText = document.getElementById('slide-count-text');
+        const downloadBtn = document.getElementById('download-btn');
+        const removeBtn = document.getElementById('remove-btn');
+        const loading = document.getElementById('loading');
+
+        let currentFile = null;
+        let slideTexts = [];
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        removeBtn.addEventListener('click', () => {
+            currentFile = null;
+            slideTexts = [];
+            fileInput.value = '';
+            editorSection.classList.add('hidden');
+            dropZone.classList.remove('hidden');
+        });
+
+        async function handleFile(file) {
+            currentFile = file;
+            fileNameDisplay.textContent = file.name;
+            dropZone.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const zip = await JSZip.loadAsync(arrayBuffer);
+
+                // Find slide XML files in order
+                const slideFiles = Object.keys(zip.files)
+                    .filter(name => /^ppt\/slides\/slide\d+\.xml$/i.test(name))
+                    .sort((a, b) => {
+                        const numA = parseInt(a.match(/\d+/)[0], 10);
+                        const numB = parseInt(b.match(/\d+/)[0], 10);
+                        return numA - numB;
+                    });
+
+                slideTexts = [];
+                for (let i = 0; i < slideFiles.length; i++) {
+                    const xmlStr = await zip.files[slideFiles[i]].async('string');
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlStr, 'text/xml');
+                    const textNodes = xmlDoc.getElementsByTagName('a:t');
+
+                    const lines = [];
+                    for (let j = 0; j < textNodes.length; j++) {
+                        const txt = textNodes[j].textContent.trim();
+                        if (txt) lines.push(txt);
+                    }
+                    slideTexts.push({ slideNum: i + 1, lines });
+                }
+
+                slideCountText.textContent = `${slideTexts.length} Slide${slideTexts.length === 1 ? '' : 's'} Extracted`;
+                loading.classList.add('hidden');
+                editorSection.classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                alert('Error parsing PowerPoint file. Ensure it is a valid .pptx presentation.');
+                loading.classList.add('hidden');
+                dropZone.classList.remove('hidden');
+            }
+        }
+
+        downloadBtn.addEventListener('click', async () => {
+            if (!slideTexts.length) return;
+
+            const children = [];
+
+            slideTexts.forEach(s => {
+                children.push(new Paragraph({
+                    text: `Slide ${s.slideNum}`,
+                    heading: HeadingLevel.HEADING_2,
+                    spacing: { before: 200, after: 100 }
+                }));
+
+                if (s.lines.length) {
+                    s.lines.forEach(line => {
+                        children.push(new Paragraph({ text: line, spacing: { after: 60 } }));
+                    });
+                } else {
+                    children.push(new Paragraph({ text: '(No text on slide)', spacing: { after: 60 } }));
+                }
+            });
+
+            const doc = new Document({ sections: [{ children }] });
+            const blob = await Packer.toBlob(doc);
+            const baseName = (currentFile ? currentFile.name : 'presentation').replace(/\.[^/.]+$/, "");
+            downloadBlob(blob, `${baseName}-converted.docx`);
+        });
+    </script>
+</body>
+
+</html>
