@@ -278,20 +278,30 @@
             return table;
         }
 
+        function sanitizeText(str) {
+            if (!str) return '';
+            return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+        }
+
         downloadBtn.addEventListener('click', () => {
             if (!parsedPagesData.length) return;
 
             const wb = XLSX.utils.book_new();
 
             parsedPagesData.forEach(p => {
-                const ws = XLSX.utils.aoa_to_sheet(p.rows);
+                const sanitizedRows = p.rows.map(row => row.map(cell => sanitizeText(cell)));
+                const ws = XLSX.utils.aoa_to_sheet(sanitizedRows);
                 XLSX.utils.book_append_sheet(wb, ws, `Page ${p.pageNum}`);
             });
 
             const baseName = (currentFile ? currentFile.name : 'pdf-export').replace(/\.[^/.]+$/, "");
             const fileName = `${baseName}-converted.xlsx`;
 
-            XLSX.writeFile(wb, fileName);
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            downloadBlob(blob, fileName);
         });
     </script>
 </body>

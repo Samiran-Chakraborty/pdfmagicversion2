@@ -109,9 +109,9 @@
             </div>
 
             <!-- Upload Zone -->
+            <input type="file" id="file-input" accept=".pdf, .png, .jpg, .jpeg, application/pdf, image/*" class="hidden">
             <div id="upload-zone"
                 class="rounded-2xl p-10 cursor-pointer mb-8 group hover:bg-orange-50/50 border-2 border-dashed border-slate-200 hover:border-orange-300 transition-all">
-                <input type="file" id="file-input" accept=".pdf, .png, .jpg, .jpeg, application/pdf, image/*" class="hidden">
                 <div class="pointer-events-none">
                     <svg class="h-12 w-12 text-slate-400 mx-auto mb-4 group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
@@ -221,6 +221,7 @@
 
         // File Handling
         uploadZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('click', (e) => e.stopPropagation());
         uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('bg-indigo-50'); });
         uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('bg-indigo-50'));
         uploadZone.addEventListener('drop', (e) => {
@@ -252,7 +253,13 @@
             editorSection.classList.add('hidden');
         });
 
-        // OCR Logic
+        function sanitizeText(str) {
+            if (!str) return '';
+            // Remove control characters (except newline \n, return \r, and tab \t) that corrupt docx XML
+            return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+        }
+
+        // OCR & PDF Logic
         scanBtn.addEventListener('click', async () => {
             if (!currentFile) return;
 
@@ -264,15 +271,25 @@
 
             try {
                 let text = '';
-                if (currentFile.type.startsWith('image/')) {
+                const fileName = (currentFile.name || '').toLowerCase();
+                const fileType = (currentFile.type || '').toLowerCase();
+
+                const isPdf = fileType.includes('pdf') || fileName.endsWith('.pdf');
+                const isImage = fileType.startsWith('image/') || /\.(png|jpg|jpeg|webp|bmp|tiff|gif)$/i.test(fileName);
+
+                if (isImage) {
                     text = await processImage(currentFile);
-                } else if (currentFile.type === 'application/pdf') {
+                } else if (isPdf) {
+                    text = await processPdf(currentFile);
+                } else {
+                    // Fallback attempt based on PDF
                     text = await processPdf(currentFile);
                 }
 
+                text = sanitizeText(text);
                 resultText.value = text;
                 completeBadge.classList.remove('hidden');
-                downloadBtn.disabled = false;
+                downloadBtn.disabled = !text.trim();
                 statusText.textContent = 'Done!';
                 progressBar.style.width = '100%';
                 progressPercent.textContent = '100%';
@@ -314,19 +331,79 @@
             let fullText = '';
             let pdfHasText = false;
 
-            // Try fast direct text extraction first
+            // Try precise text extraction first
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
-                const pageText = textContent.items.map(item => item.str).join(' ').trim();
-                if (pageText.length > 5) {
+
+                if (!textContent || !textContent.items || textContent.items.length === 0) continue;
+
+                // Group items by Y coordinate with tight 3.5px tolerance
+                const linesByY = {};
+                const toleranceY = 3.5;
+
+                textContent.items.forEach(item => {
+                    if (!item || !item.str) return;
+                    const strVal = item.str;
+                    if (!strVal.trim() && strVal !== ' ') return;
+
+                    const y = item.transform ? item.transform[5] : 0;
+                    let matchedY = Object.keys(linesByY).find(keyY => Math.abs(parseFloat(keyY) - y) < toleranceY);
+                    if (!matchedY) {
+                        matchedY = y;
+                        linesByY[matchedY] = [];
+                    }
+                    linesByY[matchedY].push(item);
+                });
+
+                // Sort lines top-to-bottom (Y descending in PDF space)
+                const sortedYKeys = Object.keys(linesByY).sort((a, b) => parseFloat(b) - parseFloat(a));
+
+                const pageLines = sortedYKeys.map(yKey => {
+                    // Sort items in row left-to-right (X ascending)
+                    const rowItems = linesByY[yKey].sort((a, b) => {
+                        const xA = a.transform ? a.transform[4] : 0;
+                        const xB = b.transform ? b.transform[4] : 0;
+                        return xA - xB;
+                    });
+
+                    let lineText = '';
+                    for (let j = 0; j < rowItems.length; j++) {
+                        const item = rowItems[j];
+                        const itemStr = item.str;
+                        if (j === 0) {
+                            lineText += itemStr;
+                        } else {
+                            const prevItem = rowItems[j - 1];
+                            const prevX = prevItem.transform ? prevItem.transform[4] : 0;
+                            const prevW = prevItem.width > 0 ? prevItem.width : (prevItem.str.length * 5.5);
+                            const currX = item.transform ? item.transform[4] : 0;
+                            const gap = currX - (prevX + prevW);
+
+                            // Only add space if there is a real gap (> 2.8px) between word fragments
+                            if (gap > 2.8 && !lineText.endsWith(' ') && !itemStr.startsWith(' ')) {
+                                lineText += ' ' + itemStr;
+                            } else {
+                                lineText += itemStr;
+                            }
+                        }
+                    }
+
+                    // Clean up duplicate spaces and vertical bar table noise
+                    let clean = lineText.replace(/\s+/g, ' ').trim();
+                    clean = clean.replace(/(\|\s*){3,}/g, ' ').replace(/\|\s*=\s*\|\s*/g, '');
+                    return clean;
+                }).filter(l => l.length > 0 && !/^[\s|+=_\-–—]+$/.test(l));
+
+                const pageText = pageLines.join('\n');
+                if (pageText.trim().length > 5) {
                     pdfHasText = true;
-                    fullText += `--- Page ${i} ---\n` + pageText + '\n\n';
+                    fullText += (fullText ? '\n\n' : '') + pageText;
                 }
             }
 
-            if (pdfHasText) {
-                statusText.textContent = 'Extracted text directly!';
+            if (pdfHasText && fullText.trim().length > 10) {
+                statusText.textContent = 'Extracted digital text!';
                 progressBar.style.width = '100%';
                 progressPercent.textContent = '100%';
                 return fullText;
@@ -337,7 +414,7 @@
             try {
                 worker = await createTesseractWorker();
                 for (let i = 1; i <= pdf.numPages; i++) {
-                    statusText.textContent = `Processing page ${i} of ${pdf.numPages}...`;
+                    statusText.textContent = `Scanning page ${i} of ${pdf.numPages}...`;
                     const pct = Math.round((i / pdf.numPages) * 100);
                     progressBar.style.width = pct + '%';
                     progressPercent.textContent = pct + '%';
@@ -356,7 +433,13 @@
 
                     const imgUrl = canvas.toDataURL('image/png');
                     const { data: { text } } = await worker.recognize(imgUrl);
-                    fullText += `--- Page ${i} ---\n` + text + '\n\n';
+                    
+                    const cleanedOcr = text.split('\n')
+                        .map(l => l.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '').trim())
+                        .filter(l => l.length > 0 && !/^[\s|+=_\-–—]+$/.test(l))
+                        .join('\n');
+
+                    fullText += (fullText ? '\n\n' : '') + cleanedOcr;
                 }
             } finally {
                 if (worker) await worker.terminate();
@@ -367,23 +450,35 @@
 
         // Word Generation
         downloadBtn.addEventListener('click', () => {
-            const text = resultText.value;
-            if (!text) return;
+            const rawText = sanitizeText(resultText.value);
+            if (!rawText.trim()) return;
+
+            const lines = rawText.split(/\r?\n/);
+            const paragraphElements = lines.map(line => {
+                const cleanLine = line.trim();
+                if (!cleanLine) {
+                    return new Paragraph({ spacing: { after: 120 } });
+                }
+                return new Paragraph({
+                    children: [new TextRun({ text: cleanLine })],
+                    spacing: { after: 120 }
+                });
+            });
 
             const doc = new Document({
                 sections: [{
                     properties: {},
-                    children: text.split('\n').map(line => new Paragraph({
-                        children: [new TextRun(line)],
-                        spacing: { after: 120 }
-                    }))
+                    children: paragraphElements
                 }]
             });
 
-            Packer.toBlob(doc).then(blob => {
+            Packer.toBlob(doc).then(rawBlob => {
+                const docxBlob = new Blob([rawBlob], {
+                    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                });
                 const baseName = (currentFile ? currentFile.name : 'document').replace(/\.[^/.]+$/, "");
                 const fileName = `${baseName}-converted.docx`;
-                downloadBlob(blob, fileName);
+                downloadBlob(docxBlob, fileName);
             });
         });
     </script>

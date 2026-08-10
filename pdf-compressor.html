@@ -104,13 +104,13 @@
                     </svg>
                 </div>
                 <h1 class="text-3xl font-bold text-slate-900 mb-2">PDF File Compressor</h1>
-                <p class="text-slate-500">Compress large PDF documents to your exact target file size.</p>
+                <p class="text-slate-500">Compress large PDF documents in one click.</p>
             </div>
 
             <!-- Upload Zone -->
+            <input type="file" id="file-input" accept=".pdf, application/pdf" class="hidden">
             <div id="upload-zone"
                 class="rounded-2xl p-10 cursor-pointer mb-8 group hover:bg-indigo-50/50 border-2 border-dashed border-slate-200 hover:border-indigo-300 transition-all">
-                <input type="file" id="file-input" accept=".pdf, application/pdf" class="hidden">
                 <div class="pointer-events-none">
                     <svg class="h-12 w-12 text-slate-400 mx-auto mb-4 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
@@ -131,18 +131,11 @@
                     <button id="remove-btn" class="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 font-semibold text-sm">Remove</button>
                 </div>
 
-                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Target PDF File Size (KB)</label>
-                        <input type="number" id="target-kb" placeholder="e.g. 500 (Optional)" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-800 outline-none focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Compression Quality: <span id="quality-val" class="text-indigo-600">70%</span></label>
-                        <input type="range" id="quality-slider" min="0.2" max="0.95" step="0.05" value="0.7" class="w-full accent-indigo-600">
-                    </div>
-                </div>
-
-                <button id="process-btn" class="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-bold text-lg hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition-all">
+                <!-- One-click Compress Button -->
+                <button id="process-btn" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-indigo-700 shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
                     Compress PDF
                 </button>
 
@@ -176,9 +169,6 @@
         const editorSection = document.getElementById('editor-section');
         const fileName = document.getElementById('file-name');
         const originalInfo = document.getElementById('original-info');
-        const targetKb = document.getElementById('target-kb');
-        const qualitySlider = document.getElementById('quality-slider');
-        const qualityVal = document.getElementById('quality-val');
         const processBtn = document.getElementById('process-btn');
         const resultArea = document.getElementById('result-area');
         const newSizeDisplay = document.getElementById('new-size-display');
@@ -188,11 +178,8 @@
         let currentFile = null;
         let compressedBlob = null;
 
-        qualitySlider.addEventListener('input', (e) => {
-            qualityVal.textContent = Math.round(e.target.value * 100) + '%';
-        });
-
         uploadZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('click', (e) => e.stopPropagation());
         uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('active'); });
         uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('active'));
         uploadZone.addEventListener('drop', (e) => {
@@ -238,9 +225,8 @@
                 const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
                 const newPdfDoc = await PDFDocument.create();
 
-                let quality = parseFloat(qualitySlider.value);
-                const targetBytes = targetKb.value ? parseFloat(targetKb.value) * 1024 : null;
-                const renderScale = targetBytes && targetBytes < currentFile.size * 0.5 ? 0.8 : 1.0;
+                const quality = 0.60;
+                const renderScale = 0.9;
 
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                     const page = await pdf.getPage(pageNum);
@@ -256,8 +242,10 @@
 
                     await page.render({ canvasContext: ctx, viewport: renderViewport }).promise;
 
-                    const imgDataUrl = canvas.toDataURL('image/jpeg', quality);
-                    const jpegImage = await newPdfDoc.embedJpg(imgDataUrl);
+                    const imgBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+                    const imgBuffer = await imgBlob.arrayBuffer();
+                    const imgBytes = new Uint8Array(imgBuffer);
+                    const jpegImage = await newPdfDoc.embedJpg(imgBytes);
 
                     const newPage = newPdfDoc.addPage([origViewport.width, origViewport.height]);
                     newPage.drawImage(jpegImage, {

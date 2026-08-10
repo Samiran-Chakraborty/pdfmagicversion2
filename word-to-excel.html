@@ -104,8 +104,8 @@
             </div>
 
             <!-- Upload Zone -->
+            <input type="file" id="file-input" accept=".docx, .doc, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/msword" class="hidden">
             <div id="drop-zone" class="drop-zone rounded-2xl p-10 cursor-pointer mb-8 group hover:bg-blue-50/50">
-                <input type="file" id="file-input" accept=".docx, .doc, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/msword" class="hidden">
                 <div class="pointer-events-none">
                     <svg class="h-12 w-12 text-slate-400 mx-auto mb-4 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
@@ -172,6 +172,7 @@
         let extractedHtml = '';
 
         dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('click', (e) => e.stopPropagation());
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('active'); });
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
         dropZone.addEventListener('drop', (e) => {
@@ -224,32 +225,101 @@
             reader.readAsArrayBuffer(file);
         }
 
+        function cleanCellText(text) {
+            if (!text) return '';
+            let clean = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+            return clean.replace(/\r/g, '').trim();
+        }
+
+        function parseWordHtmlToRows(html) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const rows = [];
+
+            function processNode(node) {
+                if (!node) return;
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    const tag = node.tagName.toUpperCase();
+
+                    if (tag === 'TABLE') {
+                        const trs = node.querySelectorAll('tr');
+                        trs.forEach(tr => {
+                            const rowCells = [];
+                            const cells = tr.querySelectorAll('th, td');
+                            cells.forEach(c => {
+                                const cellTxt = cleanCellText(c.innerText || c.textContent || '').replace(/\n+/g, ' ');
+                                rowCells.push(cellTxt);
+                            });
+                            if (rowCells.some(cell => cell.length > 0)) {
+                                rows.push(rowCells);
+                            }
+                        });
+                        rows.push([]);
+                        return;
+                    }
+
+                    if (['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'TR'].includes(tag)) {
+                        if (node.querySelector('table')) {
+                            Array.from(node.childNodes).forEach(processNode);
+                            return;
+                        }
+
+                        const rawTxt = cleanCellText(node.innerText || node.textContent || '');
+                        if (rawTxt) {
+                            const lines = rawTxt.split('\n').map(l => l.trim()).filter(Boolean);
+                            lines.forEach(line => {
+                                const cols = line.split(/\t|,|\s{2,}/).map(c => cleanCellText(c));
+                                rows.push(cols);
+                            });
+                        }
+                        return;
+                    }
+
+                    Array.from(node.childNodes).forEach(processNode);
+                }
+            }
+
+            Array.from(tempDiv.childNodes).forEach(processNode);
+
+            // Clean consecutive blank rows
+            const finalRows = [];
+            let lastWasEmpty = false;
+            rows.forEach(r => {
+                const isEmpty = !r || r.length === 0 || r.every(cell => !cell);
+                if (!isEmpty) {
+                    finalRows.push(r);
+                    lastWasEmpty = false;
+                } else if (!lastWasEmpty && finalRows.length > 0) {
+                    finalRows.push([]);
+                    lastWasEmpty = true;
+                }
+            });
+
+            return finalRows;
+        }
+
         downloadBtn.addEventListener('click', () => {
             if (!extractedHtml) return;
 
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = extractedHtml;
-
-            const tables = tempDiv.querySelectorAll('table');
-            const wb = XLSX.utils.book_new();
-
-            if (tables.length > 0) {
-                tables.forEach((tbl, idx) => {
-                    const ws = XLSX.utils.table_to_sheet(tbl);
-                    XLSX.utils.book_append_sheet(wb, ws, `Table ${idx + 1}`);
-                });
-            } else {
-                // If no HTML tables found, parse line by line into single sheet
-                const textLines = tempDiv.innerText.split('\n').map(l => l.trim()).filter(Boolean);
-                const rows = textLines.map(line => line.split(/\t|,|\s{2,}/));
-                const ws = XLSX.utils.aoa_to_sheet(rows);
-                XLSX.utils.book_append_sheet(wb, ws, 'Document Content');
+            const masterRows = parseWordHtmlToRows(extractedHtml);
+            if (masterRows.length === 0) {
+                alert('No content available to export.');
+                return;
             }
+
+            const wb = XLSX.utils.book_new();
+            const wsDocument = XLSX.utils.aoa_to_sheet(masterRows);
+            XLSX.utils.book_append_sheet(wb, wsDocument, 'Document Content');
 
             const baseName = (currentFile ? currentFile.name : 'word-export').replace(/\.[^/.]+$/, "");
             const fileName = `${baseName}-converted.xlsx`;
 
-            XLSX.writeFile(wb, fileName);
+            // Export as binary array buffer Blob with correct XLSX mime type
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            downloadBlob(blob, fileName);
         });
     </script>
 </body>

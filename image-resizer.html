@@ -98,14 +98,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-bold text-slate-900 mb-2">Image Resizer & Compressor</h1>
-                <p class="text-slate-500">Resize pixel dimensions and compress image file size (PNG, JPG, WebP).</p>
+                <h1 class="text-3xl font-bold text-slate-900 mb-2">Image Compressor</h1>
+                <p class="text-slate-500">Compress image file sizes (PNG, JPG, WebP) in one click.</p>
             </div>
 
             <!-- Upload Zone -->
+            <input type="file" id="file-input" accept="image/*, .png, .jpg, .jpeg, .webp" class="hidden">
             <div id="upload-zone"
                 class="rounded-2xl p-10 cursor-pointer mb-8 group hover:bg-pink-50/50 border-2 border-dashed border-slate-200 hover:border-pink-300 transition-all">
-                <input type="file" id="file-input" accept="image/*, .png, .jpg, .jpeg, .webp" class="hidden">
                 <div class="pointer-events-none">
                     <svg class="h-12 w-12 text-slate-400 mx-auto mb-4 group-hover:text-pink-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
@@ -127,29 +127,12 @@
                     <button id="remove-btn" class="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 font-semibold text-sm">Remove</button>
                 </div>
 
-                <!-- Dimension & Quality Controls -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-200">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Width (px)</label>
-                        <input type="number" id="width-input" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-800 outline-none focus:border-pink-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Height (px)</label>
-                        <input type="number" id="height-input" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-800 outline-none focus:border-pink-500">
-                    </div>
-                    <div class="md:col-span-2 flex items-center gap-2">
-                        <input type="checkbox" id="aspect-ratio" checked class="w-4 h-4 text-pink-600 rounded">
-                        <label for="aspect-ratio" class="text-sm font-semibold text-slate-700">Maintain Aspect Ratio</label>
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Target File Size (KB)</label>
-                        <input type="number" id="target-kb" placeholder="e.g. 200 (Optional)" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-800 outline-none focus:border-pink-500">
-                    </div>
-                </div>
-
-                <!-- Action Button -->
-                <button id="process-btn" class="w-full bg-pink-600 text-white py-3.5 rounded-xl font-bold text-lg hover:bg-pink-700 shadow-lg shadow-pink-500/20 transition-all flex items-center justify-center gap-2">
-                    Resize & Compress Image
+                <!-- One-click Compress Button -->
+                <button id="process-btn" class="w-full bg-pink-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-pink-700 shadow-lg shadow-pink-500/25 transition-all flex items-center justify-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    Compress Image
                 </button>
 
                 <!-- Result Preview -->
@@ -180,10 +163,6 @@
         const editorSection = document.getElementById('editor-section');
         const fileName = document.getElementById('file-name');
         const originalInfo = document.getElementById('original-info');
-        const widthInput = document.getElementById('width-input');
-        const heightInput = document.getElementById('height-input');
-        const aspectRatio = document.getElementById('aspect-ratio');
-        const targetKb = document.getElementById('target-kb');
         const processBtn = document.getElementById('process-btn');
         const resultArea = document.getElementById('result-area');
         const newSizeDisplay = document.getElementById('new-size-display');
@@ -194,8 +173,10 @@
         let origWidth = 0;
         let origHeight = 0;
         let compressedBlob = null;
+        let finalExportExt = 'jpg';
 
         uploadZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('click', (e) => e.stopPropagation());
         uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('active'); });
         uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('active'));
         uploadZone.addEventListener('drop', (e) => {
@@ -234,8 +215,6 @@
                 img.onload = () => {
                     origWidth = img.width;
                     origHeight = img.height;
-                    widthInput.value = origWidth;
-                    heightInput.value = origHeight;
                     originalInfo.textContent = `Original Dimensions: ${origWidth}x${origHeight}px | Size: ${(file.size / 1024).toFixed(1)} KB`;
                     editorSection.classList.remove('hidden');
                 };
@@ -244,58 +223,73 @@
             reader.readAsDataURL(file);
         }
 
-        widthInput.addEventListener('input', () => {
-            if (aspectRatio.checked && origWidth > 0) {
-                heightInput.value = Math.round((widthInput.value / origWidth) * origHeight);
-            }
-        });
-
-        heightInput.addEventListener('input', () => {
-            if (aspectRatio.checked && origHeight > 0) {
-                widthInput.value = Math.round((heightInput.value / origHeight) * origWidth);
-            }
-        });
-
         processBtn.addEventListener('click', async () => {
             if (!currentFile) return;
 
             processBtn.disabled = true;
-            processBtn.textContent = 'Processing...';
+            processBtn.textContent = 'Compressing...';
 
             try {
-                const targetWidth = parseInt(widthInput.value) || origWidth;
-                const targetHeight = parseInt(heightInput.value) || origHeight;
-                const targetBytes = targetKb.value ? parseFloat(targetKb.value) * 1024 : null;
+                const targetWidth = origWidth;
+                const targetHeight = origHeight;
+                const targetMaxBytes = Math.max(1024, currentFile.size * 0.70);
 
                 const img = new Image();
-                img.src = URL.createObjectURL(currentFile);
-                await img.decode();
+                const objectUrl = URL.createObjectURL(currentFile);
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = () => reject(new Error('Failed to load image file.'));
+                    img.src = objectUrl;
+                });
+
+                let origExt = (currentFile.name.split('.').pop() || 'jpg').toLowerCase();
+                let mimeType = currentFile.type || (origExt === 'png' ? 'image/png' : origExt === 'webp' ? 'image/webp' : 'image/jpeg');
+
+                // Canvas PNG does not support lossy quality reduction. Use JPEG for compressing PNG files.
+                if (mimeType === 'image/png') {
+                    mimeType = 'image/jpeg';
+                    finalExportExt = 'jpg';
+                } else if (mimeType === 'image/jpeg') {
+                    finalExportExt = 'jpg';
+                } else if (mimeType === 'image/webp') {
+                    finalExportExt = 'webp';
+                } else {
+                    finalExportExt = origExt;
+                }
 
                 let curWidth = targetWidth;
                 let curHeight = targetHeight;
+                let quality = 0.75;
 
-                const canvas = document.createElement('canvas');
-                canvas.width = curWidth;
-                canvas.height = curHeight;
-                const ctx = canvas.getContext('2d');
-
-                let mimeType = currentFile.type || 'image/jpeg';
-                if (targetBytes && mimeType === 'image/png') {
-                    mimeType = 'image/jpeg'; // JPEG supports quality compression
+                async function renderBlob(w, h, q, type) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    return new Promise(res => canvas.toBlob(res, type || mimeType, q));
                 }
 
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, curWidth, curHeight);
-                ctx.drawImage(img, 0, 0, curWidth, curHeight);
+                let blob = await renderBlob(curWidth, curHeight, quality);
 
-                let quality = 0.90;
-                let blob = await new Promise(res => canvas.toBlob(res, mimeType, quality));
-
-                if (targetBytes && blob.size > targetBytes) {
-                    for (let q = 0.80; q >= 0.15; q -= 0.10) {
-                        blob = await new Promise(res => canvas.toBlob(res, mimeType, q));
-                        if (blob.size <= targetBytes) break;
+                if (blob && blob.size > targetMaxBytes) {
+                    for (let q = 0.65; q >= 0.15; q -= 0.10) {
+                        blob = await renderBlob(curWidth, curHeight, q);
+                        if (blob && blob.size <= targetMaxBytes) break;
                     }
+                    while (blob && blob.size > targetMaxBytes && curWidth > 100 && curHeight > 100) {
+                        curWidth = Math.round(curWidth * 0.85);
+                        curHeight = Math.round(curHeight * 0.85);
+                        blob = await renderBlob(curWidth, curHeight, 0.40);
+                    }
+                }
+
+                URL.revokeObjectURL(objectUrl);
+
+                if (!blob) {
+                    throw new Error('Failed to generate compressed image blob.');
                 }
 
                 compressedBlob = blob;
@@ -303,23 +297,22 @@
                 const newKb = (blob.size / 1024).toFixed(1);
                 const reduction = Math.round((1 - blob.size / currentFile.size) * 100);
 
-                newSizeDisplay.textContent = `${newKb} KB (${reduction > 0 ? reduction + '% smaller' : 'resized'})`;
+                newSizeDisplay.textContent = `${newKb} KB (${reduction > 0 ? reduction + '% compressed' : 'compressed'})`;
                 resultArea.classList.remove('hidden');
 
             } catch (err) {
                 console.error(err);
-                alert('Error resizing image.');
+                alert('Error compressing image: ' + err.message);
             }
 
             processBtn.disabled = false;
-            processBtn.textContent = 'Resize & Compress Image';
+            processBtn.textContent = 'Compress Image';
         });
 
         downloadBtn.addEventListener('click', () => {
             if (!compressedBlob) return;
-            const ext = currentFile.name.split('.').pop() || 'jpg';
             const baseName = currentFile.name.replace(/\.[^/.]+$/, "");
-            downloadBlob(compressedBlob, `${baseName}-resized.${ext}`);
+            downloadBlob(compressedBlob, `${baseName}-compressed.${finalExportExt}`);
         });
     </script>
 </body>
